@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emotion Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+   <div class="bg-blue-400 min-h-screen w-full px-96 py-10 max-md:px-20 max-sm:px-10">
+    <div class="flex  pb-6 flex justify-between">
+       <p class="text-2xl text-white font-bold">Emotion Detection</p> 
+       <a class="text-md rounded-lg bg-blue-700 hover:bg-blue-500 text-white p-2" href="/live_emotion_detection"> Detect Live</a>
+    </div>
+    <form class="bg-white p-4 rounded-lg" action="/detect_emotion" method="post" enctype="multipart/form-data">
+        <label class="block text-gray-700 text-sm font-bold my-3" for="image">
+            Choose an Image
+        </label>
+        <input
+            class="border rounded w-full my-4 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            type="file" name="image" accept="image/*" required id="image" onchange="previewImage()">
+            <div id="imagePreview" class="my-3 hidden">
+                <img class="w-full" id="preview" src="#" alt="Preview">
+            </div>
+        <!-- <input type="file" name="image" accept="image/*" required><br/><br/><br/>
+        <div id="image-container" >
+            <img id="input-image" src="#" alt="Input Image" style="max-width: 500px;">
+        </div> -->
+        <div  class="flex justify-end">
+            <button class="bg-blue-700 text-white hover:bg-blue-500 p-2 rounded" type="submit">Detect Emotion</button>
+        </div>
+        <div id="result" style="display: none;">
+                   <h2 class="text-purple-500 text-xl font-bold">Detected Emotion:</h2>
+    <div id="emotions-list"></div>
+        </div>
+
+    </form>
+
+
+   </div>
+ 
+    <script>
+          function previewImage() {
+        const input = document.getElementById('image');
+        const preview = document.getElementById('preview');
+        const imagePreview = document.getElementById('imagePreview');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+            };
+
+            reader.readAsDataURL(input.files[0]);
+            imagePreview.classList.remove('hidden');
+        } else {
+            preview.src = '';
+            imagePreview.classList.add('hidden');
+        }
+    }
+        const form = document.querySelector('form');
+        const emotionsList = document.getElementById('emotions-list');
+        const imageContainer = document.getElementById('image-container');
+        const inputImage = document.getElementById('input-image');
+        const resultview = document.getElementById('result');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/detect_emotion', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                const emotions = data.emotions;
+
+                // Clear previous results
+                emotionsList.innerHTML = '';
+
+                // Display detected emotions
+                emotions.forEach(emotion => {
+                    const li = document.createElement('h2');
+                    li.textContent = emotion;
+                    emotionsList.appendChild(li);
+                });
+                resultview.style.display='block';
+
+                // Display input image
+                if (formData.get('image')) {
+                    const imageURL = URL.createObjectURL(formData.get('image'));
+                    inputImage.src = imageURL;
+                    // imageContainer.style.display = 'block';
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>
